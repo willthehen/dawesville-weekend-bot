@@ -1,0 +1,40 @@
+# Writes the weekend message every Thursday afternoon and saves it to latest.json.
+# GitHub's clock is UTC. Perth is UTC+8, so 08:15 UTC = 4:15pm Perth.
+name: Weekly Dawesville message
+
+on:
+  schedule:
+    - cron: "15 8 * * 4"   # Thursday 4:15pm Perth
+    - cron: "15 9 * * 4"   # Thursday 5:15pm Perth - backup, does nothing if the first run worked
+  workflow_dispatch:        # lets you press "Run workflow" by hand (always writes a fresh message)
+
+permissions:
+  contents: write           # needed to save latest.json back into the repo
+
+concurrency: weekly-message
+
+jobs:
+  write-message:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - run: pip install -r requirements.txt
+
+      - name: Write the message
+        run: python weekend_bot.py ${{ github.event_name == 'workflow_dispatch' && '--force' || '' }}
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Save it to the repo
+        run: |
+          git config user.name "weekend-bot"
+          git config user.email "weekend-bot@users.noreply.github.com"
+          git add latest.json history.jsonl
+          git diff --cached --quiet || git commit -m "Weekend message for $(TZ=Australia/Perth date +%F)"
+          git push
