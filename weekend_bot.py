@@ -26,6 +26,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 MODEL = os.environ.get("BOT_MODEL", "claude-opus-5-5")
+MESSAGE_TITLE = "Dawesville Weekend Assessment"   # first line of every message
 MAX_MESSAGE_CHARS = 520          # longer than this = too long for a group chat, so try again
 MAX_WEB_SEARCHES = 10            # caps the cost of each run
 MAX_PAGE_OPENS = 4               # event-listing pages Claude may open and read
@@ -170,6 +171,7 @@ the weather, what's on, and a closing remark or suggestion. Then the rating line
 overload, no hashtags, no links, no sources, at most one emoji. Keep the whole thing under 450 \
 characters. Use the forecast numbers you're given, not ones from search results.
 
+Don't add a title, heading or greeting - a title is added automatically. \
 Finish your reply with the final message inside <message></message> tags, with the rating as \
 the last line in the form "Dawesville weekend: 7/10". Nothing after the closing tag."""
 
@@ -290,6 +292,7 @@ def main() -> None:
         sys.exit("ANTHROPIC_API_KEY isn't set - see README step 2.")
 
     message, rating = write_message(request_text)
+    message = f"{MESSAGE_TITLE}\n\n{message}"
     print("=" * 60 + f"\n{message}\n" + "=" * 60)
     if args.dry_run:
         return

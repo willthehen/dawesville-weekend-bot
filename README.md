@@ -2,6 +2,8 @@
 
 Every Thursday at about 6:45pm (Perth time), your iPhone texts the family group chat something like:
 
+> Dawesville Weekend Assessment
+>
 > Dawesville is in for a mild, dry weekend, with highs of 18–19° and a slight chance of drizzle on Sunday. The Mandurah Country Music Festival takes over Rushton Park on Saturday, and the Peel Produce Market is on at the Dawesville Foreshore that morning. With school holidays in full swing, expect a busy foreshore and plan the bacon-and-egg roll accordingly.
 > Dawesville weekend: 7/10
 
