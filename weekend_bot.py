@@ -1,6 +1,6 @@
 """Dawesville Weekend Bot.
 
-Writes a short, funny "how's the weekend looking" text for the family group chat:
+Writes a short "how's the weekend looking" briefing for the family group chat:
 the weather, what's on around Dawesville/Mandurah, and a rating out of 10.
 
 GitHub runs this every Thursday afternoon (Perth time). It saves the message to
@@ -26,8 +26,9 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 MODEL = os.environ.get("BOT_MODEL", "claude-opus-5-5")
-MAX_MESSAGE_CHARS = 350          # longer than this = too long for a group chat, so try again
-MAX_WEB_SEARCHES = 8             # caps the cost of each run
+MAX_MESSAGE_CHARS = 520          # longer than this = too long for a group chat, so try again
+MAX_WEB_SEARCHES = 10            # caps the cost of each run
+MAX_PAGE_OPENS = 4               # event-listing pages Claude may open and read
 
 LATITUDE, LONGITUDE = -32.632, 115.629   # Dawesville, WA
 PERTH = timezone(timedelta(hours=8))     # Perth has no daylight saving, so this is always right
@@ -146,23 +147,28 @@ Dawesville, Western Australia (just south of Mandurah, in the Peel region). It g
 Thursday evening.
 
 Your job:
-1. Use web search to find what's on in Dawesville and nearby (Mandurah, Halls Head, Falcon, \
-Pinjarra, Peel region) on the weekend dates given: markets, festivals, local events, local sport \
-(e.g. Peel Thunder), and any big sport the family would care about (AFL/Eagles/Dockers, NRL, \
-cricket, Perth Scorchers, Wildcats, etc.). Regulars worth checking: the Saturday Peel Produce \
-Market at Dawesville Foreshore, Mandurah's Sunday markets, Mandurah Performing Arts Centre shows. \
-Seasonal things (crabbing and fishing rules, whale watching, beach conditions) are fair game if \
-you've checked them.
-2. Pick the one or two things most worth knowing. Only mention events you have confirmed are on \
-these exact dates. Never make things up; if it's a quiet weekend, just say so.
+1. Research properly before writing - run several searches, and open event-listing pages where \
+useful. Cover all of these for the weekend dates given, in Dawesville and nearby (Mandurah, \
+Halls Head, Falcon, Pinjarra, the Peel region):
+   - events and festivals: check the Visit Mandurah (visitmandurah.com) and City of Mandurah \
+(mandurah.wa.gov.au) what's-on listings for these dates
+   - markets: the Saturday Peel Produce Market at Dawesville Foreshore, Mandurah's Sunday markets
+   - shows at the Mandurah Performing Arts Centre
+   - local sport (e.g. Peel Thunder) and big sport the family would care about \
+(AFL/Eagles/Dockers, NRL, cricket, Perth Scorchers, Wildcats, etc.)
+   - seasonal things (crabbing and fishing rules, whale watching, beach conditions), if you've \
+checked them
+2. Pick the one to three things most worth knowing. Only mention events you have confirmed are on \
+these exact dates. Never make things up; if it's genuinely a quiet weekend, say so.
 3. Rate the weekend out of 10. Weather matters most (warm, sunny, light winds = high; rain, \
 storms, howling wind = low). A long weekend, school holidays or a great event bump it up. Use \
 the whole scale honestly - don't default to 7.
 
-Style: short, sharp and a bit funny - dry Aussie humour, family-friendly, like a cheeky sibling. \
-At most two short sentences, then the rating. No hashtags, no links, no sources, at most two \
-emojis. Keep the whole thing under 300 characters. Use the forecast numbers you're given, not \
-ones from search results.
+Style: a polished weekend briefing, like a local radio presenter - clear, well-written and a \
+little formal, with one light touch of dry humour (family-friendly). Exactly three sentences: \
+the weather, what's on, and a closing remark or suggestion. Then the rating line. No slang \
+overload, no hashtags, no links, no sources, at most one emoji. Keep the whole thing under 450 \
+characters. Use the forecast numbers you're given, not ones from search results.
 
 Finish your reply with the final message inside <message></message> tags, with the rating as \
 the last line in the form "Dawesville weekend: 7/10". Nothing after the closing tag."""
@@ -189,6 +195,11 @@ def ask_claude(request_text: str) -> str:
         "max_uses": MAX_WEB_SEARCHES,
         "user_location": {"type": "approximate", "city": "Mandurah", "region": "Western Australia",
                           "country": "AU", "timezone": "Australia/Perth"},
+    }, {
+        "type": "web_fetch_20260209",
+        "name": "web_fetch",
+        "max_uses": MAX_PAGE_OPENS,
+        "max_content_tokens": 15000,  # stops one huge page from blowing up the cost
     }]
     messages = [{"role": "user", "content": request_text}]
     text_parts = []
@@ -200,7 +211,7 @@ def ask_claude(request_text: str) -> str:
             system=SYSTEM_PROMPT,
             messages=messages,
             tools=tools,
-            output_config={"effort": "medium"},
+            output_config={"effort": "high"},  # more thorough event research than "medium"
             # If Claude declines for safety reasons, the API retries on a fallback model.
             betas=["server-side-fallback-2026-07-01"],
             fallbacks="default",

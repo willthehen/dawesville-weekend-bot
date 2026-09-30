@@ -2,7 +2,7 @@
 
 Every Thursday at about 6:45pm (Perth time), your iPhone texts the family group chat something like:
 
-> Dry and 18–19° all weekend (bit grey Saturday), and the Country Music Festival's at Rushton Park Saturday, so dust off the boots 🤠 School hols too, so the foreshore will be chockers.
+> Dawesville is in for a mild, dry weekend, with highs of 18–19° and a slight chance of drizzle on Sunday. The Mandurah Country Music Festival takes over Rushton Park on Saturday, and the Peel Produce Market is on at the Dawesville Foreshore that morning. With school holidays in full swing, expect a busy foreshore and plan the bacon-and-egg roll accordingly.
 > Dawesville weekend: 7/10
 
 ## How it works
@@ -23,8 +23,8 @@ need to be on. Your family's phone numbers stay on your phone and never go to Gi
 **Safety check:** the Shortcut only sends if the message is dated today. If something breaks,
 the family gets nothing (never last week's message) and you get a notification instead.
 
-**Cost:** GitHub and the weather are free. Claude costs roughly US$0.15–0.40 per message
-(about A$1–3 a month). The Claude account needs at least US$5 of credit to start, which
+**Cost:** GitHub and the weather are free. Claude costs roughly US$0.25–0.60 per message
+(about A$1.50–4 a month). The Claude account needs at least US$5 of credit to start, which
 should last a few months. That's an estimate, so check the real cost after the first run
 (console.anthropic.com → Usage).
 
@@ -75,14 +75,17 @@ Add these actions in order (use the search bar at the bottom to find each one):
 
 | # | Action | How to set it |
 |---|--------|---------------|
-| 1 | **Get Contents of URL** | Paste your raw URL from Step 3 |
+| 1 | **Get Contents of URL** | Paste your **raw** URL from Step 3 (starts with `https://raw.githubusercontent.com/`, not `https://github.com/`) |
 | 2 | **Get Dictionary from Input** | Leave as is (it uses "Contents of URL") |
-| 3 | **Get Dictionary Value** | Get **Value** for key `for_date` in **Dictionary** |
-| 4 | **Format Date** | Date: **Current Date**. Tap the arrow → Date Format: **Custom** → type `yyyy-MM-dd` |
+| 3 | **Get Dictionary Value** | Tap the word **Key** and type `for_date`. The last bubble must be **Dictionary** (from #2) |
+| 4 | **Format Date** | The date bubble must be **Current Date** (today), not Dictionary Value. Tap the arrow → Date Format: **Custom** → type `yyyy-MM-dd` |
 | 5 | **If** | Input: **Dictionary Value** (from #3) · Condition: **is** · Text: **Formatted Date** (from #4) |
-| 6 | **Get Dictionary Value** *(inside the If)* | Get **Value** for key `message` in **Dictionary** (tap the field and pick the "Dictionary" from #2) |
-| 7 | **Send Message** *(inside the If)* | Message: **Dictionary Value** (from #6). Recipients: see below. Tap the arrow and turn **Show When Run** OFF |
-| 8 | **Show Notification** *(in the Otherwise part)* | `Weekend bot: no fresh message today - check GitHub Actions` |
+| 6 | **Get Dictionary Value** *(inside the If)* | Tap the word **Key** and type `message`. Last bubble: tap it → **Clear** → tap again → **Select Variable** → tap action #2 |
+| 7 | **Send Message** *(inside the If)* | Message bubble: **Clear** → **Select Variable** → tap action #6. Recipients: see below. Tap the arrow and turn **Show When Run** OFF |
+| 8 | **Show Notification** *(in the Otherwise part, optional)* | `Weekend bot: no fresh message today - check GitHub Actions` |
+
+**Tip:** never type into an orange bubble. That renames it instead of setting the key. Keys go
+in the plain blue **Key** word.
 
 **Choosing the group chat:** in **Send Message**, tap **Recipients** and add **every person in
 the family chat**. Use the same number or email the group uses for each person, and don't
