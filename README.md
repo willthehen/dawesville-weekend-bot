@@ -15,7 +15,7 @@ Thursday 9:23am   GitHub (free) runs weekend_bot.py:
                     2. checks WA long weekends + school holidays (built-in list)
                     3. asks Claude to search what's on nearby and write the message
                     4. saves it to latest.json in your GitHub repo
-...then hourly   Retries until 5:23pm, because GitHub's timer sometimes skips runs
+...then hourly    Retries until 5:23pm, because GitHub's timer sometimes skips runs
                   (once today's message is written, the retries do nothing)
 Thursday 6:45pm   Your iPhone Shortcut reads latest.json and sends it to the family chat
 ```
