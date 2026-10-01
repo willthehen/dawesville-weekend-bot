@@ -4,7 +4,9 @@ Every Thursday at about 6:45pm (Perth time), your iPhone texts the family group 
 
 > Dawesville Weekend Assessment
 >
-> Dawesville is in for a mild, dry weekend, with highs of 18–19° and a slight chance of drizzle on Sunday. The Mandurah Country Music Festival takes over Rushton Park on Saturday, and the Peel Produce Market is on at the Dawesville Foreshore that morning. With school holidays in full swing, expect a busy foreshore and plan the bacon-and-egg roll accordingly.
+> • 18–19° and dry, bit of drizzle Sunday<br>
+> • Country Music Festival, Rushton Park (Sat)<br>
+> • Market at the foreshore Sat morning, beat the school-hols crowd ☕<br>
 > Dawesville weekend: 7/10
 
 ## How it works
@@ -17,14 +19,18 @@ Thursday 9:23am   GitHub (free) runs weekend_bot.py:
                     4. saves it to latest.json in your GitHub repo
 ...then hourly    Retries until 5:23pm, because GitHub's timer sometimes skips runs
                   (once today's message is written, the retries do nothing)
+Thursday 3:00pm   Backup: your iPhone tells GitHub to run it too (Step 6), in case
+                  GitHub's timer skipped every try
 Thursday 6:45pm   Your iPhone Shortcut reads latest.json and sends it to the family chat
+Other days        GitHub's timer runs once at 11:23am as a free health check (writes nothing)
 ```
 
 The iPhone does the sending, so the message comes from your own Apple account. Your PC doesn't
 need to be on. Your family's phone numbers stay on your phone and never go to GitHub.
 
 **Safety check:** the Shortcut only sends if the message is dated today. If something breaks,
-the family gets nothing (never last week's message) and you get a notification instead.
+the family gets nothing (never last week's message) and you get a notification instead
+(row 8 of Step 4).
 
 **Cost:** GitHub and the weather are free. Claude costs roughly US$0.25–0.60 per message
 (about A$1.50–4 a month). The Claude account needs at least US$5 of credit to start, which
@@ -85,7 +91,7 @@ Add these actions in order (use the search bar at the bottom to find each one):
 | 5 | **If** | Input: **Dictionary Value** (from #3) · Condition: **is** · Text: **Formatted Date** (from #4) |
 | 6 | **Get Dictionary Value** *(inside the If)* | Tap the word **Key** and type `message`. Last bubble: tap it → **Clear** → tap again → **Select Variable** → tap action #2 |
 | 7 | **Send Message** *(inside the If)* | Message bubble: **Clear** → **Select Variable** → tap action #6. Recipients: see below. Tap the arrow and turn **Show When Run** OFF |
-| 8 | **Show Notification** *(in the Otherwise part, optional)* | `Weekend bot: no fresh message today - check GitHub Actions` |
+| 8 | **If** *(below End If)* | Input: tap → **Select Variable** → action #3 · Condition: **is not** · Text: **Formatted Date**. Inside it add **Show Notification**: `Weekend bot: no fresh message - run it on GitHub` |
 
 **Tip:** never type into an orange bubble. That renames it instead of setting the key. Keys go
 in the plain blue **Key** word.
@@ -113,6 +119,39 @@ the first Thursday to make sure.
 (Get Contents of URL → Get Dictionary Value `message` → Show Notification). You then have 45
 minutes to switch off the 6:45 automation that week if you don't like the message.
 
+### Step 6: Backup start from your phone (recommended)
+
+GitHub's timer is "best effort" and has skipped runs before. This makes your phone start the
+run itself on Thursday afternoons. If GitHub already wrote the message, this run does nothing
+and costs nothing.
+
+**6a. Make a GitHub token** (a limited password that can only start this bot):
+1. On GitHub, tap your profile picture → **Settings** → **Developer settings** (bottom of the
+   left menu) → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Name: `weekend-bot-phone`. Expiration: the longest it offers. Put a reminder in your
+   calendar to make a new one when it runs out.
+3. Repository access: **Only select repositories** → `dawesville-weekend-bot`.
+4. Permissions: find **Actions** and set it to **Read and write**. Leave everything else.
+5. **Generate token** and copy it. It's only shown once. Don't share it with anyone.
+
+**6b. Make a shortcut called `Wake Weekend Bot`** with one action, **Get Contents of URL**:
+- URL: `https://api.github.com/repos/YOUR-USERNAME/dawesville-weekend-bot/actions/workflows/weekly-message.yml/dispatches`
+- Tap the arrow to show more options:
+  - Method: **POST**
+  - Headers: add `Authorization` = `Bearer ` followed by your token (with a space after Bearer),
+    and add `Accept` = `application/vnd.github+json`
+  - Request Body: **JSON** → add a **Text** field: key `ref`, value `main`
+
+Press ▶ to test it. Nothing pops up on the phone, but within a minute a new run appears in
+GitHub's **Actions** tab. (Test it on a Thursday evening after the message is sent and it
+costs nothing. On other days the test writes a spare message, about US$0.50.) If no run
+appears, add a **Show Result** action under it and press ▶ again to see GitHub's reply:
+"Bad credentials" means the token was pasted wrong; "Not Found" or "Resource not accessible"
+means the URL is wrong or the token doesn't have **Actions: Read and write**.
+
+**6c. Automation:** Automation tab → **+** → **Time of Day** → **3:00 PM**, Weekly, Thursday only
+→ **Run Immediately** → pick **Wake Weekend Bot** → **Done**.
+
 ---
 
 ## Changing things
@@ -121,7 +160,8 @@ minutes to switch off the 6:45 automation that week if you don't like the messag
 - **The send time:** change the Shortcuts automation. If you move it earlier than 5:30pm, also
   make the GitHub runs earlier (the `cron` lines in `.github/workflows/weekly-message.yml`; GitHub
   uses UTC, which is Perth time minus 8 hours).
-- **A message you don't like:** GitHub → Actions → Run workflow writes a fresh one.
+- **A message you don't like:** GitHub → Actions → Run workflow, tick **Replace today's
+  message**, then Run workflow. Without the tick, it only writes one if today's is missing.
 - **Every year:** the WA public holiday and school holiday lists in `weekend_bot.py` run out at
   the end of 2027. Until they're updated, the bot looks those dates up itself.
 

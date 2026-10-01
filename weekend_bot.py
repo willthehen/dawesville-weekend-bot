@@ -27,7 +27,7 @@ from pathlib import Path
 
 MODEL = os.environ.get("BOT_MODEL", "claude-opus-5-5")
 MESSAGE_TITLE = "Dawesville Weekend Assessment"   # first line of every message
-MAX_MESSAGE_CHARS = 520          # longer than this = too long for a group chat, so try again
+MAX_MESSAGE_CHARS = 320          # longer than this = too long for the family, so try again
 MAX_WEB_SEARCHES = 10            # caps the cost of each run
 MAX_PAGE_OPENS = 4               # event-listing pages Claude may open and read
 
@@ -159,17 +159,20 @@ Halls Head, Falcon, Pinjarra, the Peel region):
 (AFL/Eagles/Dockers, NRL, cricket, Perth Scorchers, Wildcats, etc.)
    - seasonal things (crabbing and fishing rules, whale watching, beach conditions), if you've \
 checked them
-2. Pick the one to three things most worth knowing. Only mention events you have confirmed are on \
+2. Pick the one or two things most worth knowing. Only mention events you have confirmed are on \
 these exact dates. Never make things up; if it's genuinely a quiet weekend, say so.
 3. Rate the weekend out of 10. Weather matters most (warm, sunny, light winds = high; rain, \
 storms, howling wind = low). A long weekend, school holidays or a great event bump it up. Use \
 the whole scale honestly - don't default to 7.
 
-Style: a polished weekend briefing, like a local radio presenter - clear, well-written and a \
-little formal, with one light touch of dry humour (family-friendly). Exactly three sentences: \
-the weather, what's on, and a closing remark or suggestion. Then the rating line. No slang \
-overload, no hashtags, no links, no sources, at most one emoji. Keep the whole thing under 450 \
-characters. Use the forecast numbers you're given, not ones from search results.
+Format: the family wants it SHORT - they won't read an essay. Write exactly three dot points, \
+each on its own line starting with "• " and under 12 words:
+• the weather (temperatures, plus rain or wind if notable)
+• the best one or two things on (what, where, which day)
+• a quick tip or a light dry joke (family-friendly)
+Then the rating line. Clear and punchy, not chatty. No paragraphs, no hashtags, no links, no \
+sources, at most one emoji. Keep the whole thing under 250 characters. Use the forecast numbers \
+you're given, not ones from search results.
 
 Don't add a title, heading or greeting - a title is added automatically. \
 Finish your reply with the final message inside <message></message> tags, with the rating as \
@@ -237,7 +240,11 @@ def extract_message(raw_text: str) -> tuple[str, float]:
     if not found:
         raise ValueError("no <message> tags in the reply")
     lines = [" ".join(line.split()) for line in found[-1].strip().splitlines()]
-    message = "\n".join(line for line in lines if line)
+    # Make every dot point use the same "• " bullet, whatever Claude used.
+    lines = [re.sub(r"^[-*•–]\s*", "• ", line) for line in lines if line]
+    if not 2 <= sum(line.startswith("• ") for line in lines) <= 4:
+        raise ValueError("not written as 2-4 dot points")
+    message = "\n".join(lines)
     rating = re.search(r"(\d{1,2}(?:\.\d)?)\s*/\s*10", message)
     if not rating or not 0 <= float(rating.group(1)) <= 10:
         raise ValueError("no rating out of 10")
@@ -271,11 +278,17 @@ def main() -> None:
                         help="write the message but don't save it")
     parser.add_argument("--force", action="store_true",
                         help="write a new message even if today's is already saved")
+    parser.add_argument("--scheduled", action="store_true",
+                        help="GitHub's timer: only write on Thursdays, other days just check in")
     args = parser.parse_args()
     sys.stdout.reconfigure(encoding="utf-8")  # so emojis print on Windows too
 
     now = datetime.now(PERTH)
     today = now.date()
+
+    if args.scheduled and today.weekday() != 3:  # 3 = Thursday
+        print("Not Thursday - GitHub's timer is working, nothing to write today.")
+        return
 
     if not (args.force or args.dry_run or args.facts_only) and LATEST_FILE.exists():
         if json.loads(LATEST_FILE.read_text(encoding="utf-8")).get("for_date") == today.isoformat():
