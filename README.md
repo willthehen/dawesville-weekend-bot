@@ -10,12 +10,13 @@ Every Thursday at about 6:45pm (Perth time), your iPhone texts the family group 
 ## How it works
 
 ```
-Thursday 4:15pm   GitHub (free) runs weekend_bot.py:
+Thursday 9:23am   GitHub (free) runs weekend_bot.py:
                     1. gets the Dawesville forecast (Open-Meteo, free)
                     2. checks WA long weekends + school holidays (built-in list)
                     3. asks Claude to search what's on nearby and write the message
                     4. saves it to latest.json in your GitHub repo
-Thursday 5:15pm   Backup run, in case the first one failed (does nothing if it worked)
+...then hourly   Retries until 5:23pm, because GitHub's timer sometimes skips runs
+                  (once today's message is written, the retries do nothing)
 Thursday 6:45pm   Your iPhone Shortcut reads latest.json and sends it to the family chat
 ```
 

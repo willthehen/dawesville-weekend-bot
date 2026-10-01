@@ -1,11 +1,12 @@
-# Writes the weekend message every Thursday afternoon and saves it to latest.json.
-# GitHub's clock is UTC. Perth is UTC+8, so 08:15 UTC = 4:15pm Perth.
+# Writes the weekend message on Thursday and saves it to latest.json.
+# GitHub's clock is UTC. Perth is UTC+8, so 01:23 UTC = 9:23am Perth.
+# GitHub's timer is "best effort" and sometimes skips runs, so it tries every hour from
+# 9:23am to 5:23pm Perth. Once one run has written today's message, the rest do nothing.
 name: Weekly Dawesville message
 
 on:
   schedule:
-    - cron: "15 8 * * 4"   # Thursday 4:15pm Perth
-    - cron: "15 9 * * 4"   # Thursday 5:15pm Perth - backup, does nothing if the first run worked
+    - cron: "23 1-9 * * 4"   # Thursday, hourly 9:23am-5:23pm Perth
   workflow_dispatch:        # lets you press "Run workflow" by hand (always writes a fresh message)
 
 permissions:
