@@ -4,9 +4,9 @@ Every Thursday at about 6:45pm (Perth time), your iPhone texts the family group 
 
 > Dawesville Weekend Assessment
 >
-> • 18–19° and dry, bit of drizzle Sunday<br>
-> • Country Music Festival, Rushton Park (Sat)<br>
-> • Market at the foreshore Sat morning, beat the school-hols crowd ☕<br>
+> • 18–19° and dry, light winds Saturday morning<br>
+> • Herring and tailor biting at the Cut; crabbing still closed 🎣<br>
+> • New cafe open in Falcon, or Peel Produce Market Sat morning<br>
 > Dawesville weekend: 7/10
 
 ## How it works
